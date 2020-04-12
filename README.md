@@ -1,2 +1,34 @@
-# uno_solidity
+# Uno Solidity
 Uno built on the blockchain using solidity
+
+Install the necessary dependencies
+
+## For Linux
+### Git
+- sudo apt-get install git
+
+### NodeJS
+- sudo apt-get install nodejs npm
+
+### Solidity
+- sudo npm install -g solc
+
+### Geth
+- sudo apt-get install software-properties-common
+- sudo add-apt-repository -y ppa:ethereum/ethereum
+- sudo apt-get update
+- sudo apt-get install ethereum
+
+## For Mac
+### Git
+- brew install git
+
+### NodeJS
+- brew install node
+
+### Solidity
+- sudo npm install -g solc
+
+### Geth
+- brew tap ethereum/ethereum
+- brew install ethereum
