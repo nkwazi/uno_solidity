@@ -5,6 +5,7 @@ Install the necessary dependencies
 
 ## Google Chrome Plugin
 Install metamask as a plugin to your Google Chrome Browser. So we can use ethereum test environments. 
+
 www.metamask.io
 
 ## For Linux
