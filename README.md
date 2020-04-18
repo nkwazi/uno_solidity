@@ -19,6 +19,9 @@ Install the necessary dependencies
 - sudo apt-get update
 - sudo apt-get install ethereum
 
+### Truffle
+- sudo npm install -g truffle
+
 ## For Mac
 ### Git
 - brew install git
@@ -32,3 +35,6 @@ Install the necessary dependencies
 ### Geth
 - brew tap ethereum/ethereum
 - brew install ethereum
+
+### Truffle
+- sudo npm install -g truffle
