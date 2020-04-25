@@ -20,8 +20,8 @@ function Card(number, colour) {
 function show_players() {
   str = "";
   for (i = 0; i < 5; i++) {
-    players[i] = new Player("Player" + i, "", "");
-    str += "Player: " + players[i].name + "\n";
+    players[i] = new Player("Player " + i, "", "");
+    str += players[i].name + "\n";
   }
   update_game_text('game', str);
   update_game_text('stack', "")
@@ -29,7 +29,8 @@ function show_players() {
 
 function start_game() {
   top_card = cards.pop();
-  update_game_text('stack', top_card)
+  text = top_card.colour + " " + top_card.number
+  update_game_text('stack', text)
 }
 
 function deal_cards() {
@@ -37,8 +38,9 @@ function deal_cards() {
   for (i = 0; i < 5; i++) {
     card1 = cards.pop();
     card2 = cards.pop();
-    players[i] = new Player("Player" + i, card1, card2);
-    str += "Player: " + players[i].name + "\t" + players[i].card1 + "\t" + players[i].card2 + "\n";
+    players[i] = new Player("Player " + i, card1, card2);
+    str += players[i].name + "\t" + players[i].card1.number + " " + players[i].card1.colour
+      + "\t" + players[i].card2.number + " " + players[i].card1.colour + "\n";
   }
   update_game_text('game', str);
 }
