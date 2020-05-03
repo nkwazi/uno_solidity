@@ -4,6 +4,39 @@ Luka Vucenovic & Janek de Kock
 */
 pragma solidity >=0.4.16 <0.7.0;
 
+enum Suit {Red, Blue, Yellow, Green, Black}
+enum Value {Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Skip, Switch, PlusTwo, ChooseColor, PlusFourColor}
+
+struct Card {
+    Value value;
+    Type type;
+}
+
+
+struct Deck {
+    Card[108] deck_state;
+    Card[108] card_used;
+    Card[108] card_player;
+    Card[108] card_left;
+    bool full_deck;
+    bool empty_deck;
+}
+
+struct Rules {
+    uint16 min_player;
+    uint16 max_player;
+    bool ready;
+
+}
+
+struct Player {
+    string player_name;
+    address player_address;
+    // bool turn; Do we need this? Or how do we implement allowing players to place the cards.
+    byte32 secret_nonce;
+
+}
+
 contract uno {
     
     address private _player;
@@ -45,6 +78,9 @@ contract uno {
         _;
     }
 
+    modifier isValidDrop{
+        require(_card.value)
+    }
 
 //TODO: Make possible playing again, after finishing a game.
     function () isValidAddr newRound public payable {
