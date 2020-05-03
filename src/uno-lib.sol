@@ -20,9 +20,9 @@ struct Deck {
 }
 
 struct Rules {
-	bool ready;
 	uint16 min_player;
 	uint16 max_player;
+    bool ready;
 
 }
 
