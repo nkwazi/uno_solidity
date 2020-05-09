@@ -12,7 +12,6 @@ struct Card {
     Type type;
 }
 
-
 struct Deck {
     Card[108] deck_state;
     Card[108] card_used;
@@ -32,7 +31,8 @@ struct Rules {
 struct Player {
     string player_name;
     address player_address;
-    // bool turn; Do we need this? Or how do we implement allowing players to place the cards.
+    // if turn is true , the user is able to put his card on the table.
+    bool turn; 
     byte32 secret_nonce;
 
 }
@@ -48,8 +48,14 @@ contract uno {
     uint256 private _dUnoBalance;
     uint256 private _origBalance;
     uint256 private _gameBalance;
+    uint256 private _newCardTable;
+    uint256 private _rngCounter;
+    uint256 private _randNum;
+    uint[]  private _cardsTable;
     uint[24] private _cards;
-    uint[12] private _players
+    uint[12] private _players;
+    uint256 private _playerBet;
+    uint256 pricate _playersPot;
     uint8 private _playersCount;
     uint8 private _cardsCount;
 
@@ -107,6 +113,46 @@ contract uno {
         return _msg;
     }
 
+    function randomNr() internal returns (uint randomNumber){
+        uint seed;
+        _rngCounter *= 2;
+        seed = now - _rngCounter;
+        _randNum = (uint(keccak256(abi.encodePacked(blockhash(block.number -1), seed)))%14 +1);
+
+        // Here we need to define the special card(switch, color). They will be numbers higher than 9. How can this be intilialized right? Should this be done in generateCards(); ??
+        if(_randNum = 10)
+            _randNum = Value.Skip;
+
+        if(_randNum = 11)
+            _randNum = Value.Switch;
+
+        if(_randNum = 12)
+            _randNum = Value.PlusTwo;
+
+         if(_randNum = 13)
+            _randNum = Value.ChooseColor;
+
+         if(_randNum = 14)
+            _randNum = Value.PlusFourColor;
+
+
+        // reset the RNG Counter, to prevent unecessary large number and overflow
+        if(_rngCounter > 420000000)
+            _rngCounter = _randNum;
+
+            return _randNum;
+
+    }
+
+    function generateCards() 
+
+    function hashCard(Card memory _your_card, bytes32 secret_nonce) internal pure returns
+    (bytes32) {
+        (Suit _suit, Value _value) = (your_card.suit, your_card.value);
+        return keccak256(abi.encode(_suit, _value, secret_nonce));
+    }
+
+
     function placeBet(uint256 bet) isValidAddr isPlayer newRound public returns (string) {
         uint256 betEth;
         betEth = bet;
@@ -139,6 +185,25 @@ contract uno {
     function deal() internal returns(string){
 
         _cards = 0
+    }
+
+    function cardTable() public view 
+        returns(string Message, uint[] players, uint playersPot, 
+        uint[] playersCards, uint[] tableCards){
+
+         return (_msg,_players, _playersPot, _cards, _cardsTable)
+       
+       }
+
+    function pickCardFromDeck() public returns (Card memory) {
+        require(deck.length != 0, "no more card on the deck");
+        uint last_card = deck.length -1 ;
+        Card memory picked_cafd = deck[last_card];
+
+        deck.pop();
+
+        return picked_card;
+
     }
 
 
