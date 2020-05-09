@@ -28,14 +28,15 @@ struct Rules {
 
 }
 
-struct Player {
-    string player_name;
-    address player_address;
+struct player {
+    string name;
+    address paddress;
     // if turn is true , the user is able to put his card on the table.
-    bool turn; 
     byte32 secret_nonce;
+    uint id;
 
 }
+    mapping(address => player) players;
 
 contract uno {
     
@@ -145,6 +146,40 @@ contract uno {
     }
 
     function generateCards() 
+
+    function generatePlayers() {
+
+        _players = 0;
+        _playersCount = 0;
+
+
+
+    }
+
+    function addPlayer(string _name, uint256 _id) public returns
+    (bool){
+        players[msg.sender].name = _name;
+        players[msg.sender].paddress = msg.sender;
+        players[msg.sender].id = _id;
+        return true;
+    }
+
+    function editPlayer(string _name, address _address,byte _secretNonce, uint256 _id) public returns (bool) {
+        players[msg.sender].name = _name;
+        players[msg.sender].paddress = _address:
+        players[msg.sender].secret_nonce = _secretNonce;
+        players[msg.sender].id = _id;
+    }
+
+    function onlyAdmin(){
+        require(msg.sender == admin);
+         _;
+    }
+
+    function removePlayer(address _address) public onlyadmin returns (bool) {
+        delete players[_address];
+        return true;
+    }
 
     function hashCard(Card memory _your_card, bytes32 secret_nonce) internal pure returns
     (bytes32) {
