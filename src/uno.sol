@@ -118,6 +118,7 @@ contract uno {
         uint seed;
         _rngCounter *= 2;
         seed = now - _rngCounter;
+        // here the random number is generated, using the previous block hash. 
         _randNum = (uint(keccak256(abi.encodePacked(blockhash(block.number -1), seed)))%14 +1);
 
         // Here we need to define the special card(switch, color). They will be numbers higher than 9. How can this be intilialized right? Should this be done in generateCards(); ??
@@ -145,6 +146,25 @@ contract uno {
 
     }
 
+    function shuffleDeck() {
+        uint256[108] memory unshuffled;
+        Deck deck;
+
+        for(uint256 i = 0; i < 108; i++){
+            unshuffled[i] = i;
+        }
+
+        uint cardIndex;
+
+        for (i=0, i < 108; i++){
+            cardIndex = uint256(randomNumber[i]) % (108-i);
+            deck[i] = unshuffled[cardIndex];
+            unshuffled[cardsIndex] = unshuffle[108-i-1];
+
+        }
+
+    }
+
     function generateCards() 
 
     function generatePlayers() {
@@ -154,6 +174,11 @@ contract uno {
 
 
 
+    }
+
+    function onlyAdmin(){
+        require(msg.sender == admin);
+         _;
     }
 
     function addPlayer(string _name, uint256 _id) public returns
@@ -169,11 +194,6 @@ contract uno {
         players[msg.sender].paddress = _address:
         players[msg.sender].secret_nonce = _secretNonce;
         players[msg.sender].id = _id;
-    }
-
-    function onlyAdmin(){
-        require(msg.sender == admin);
-         _;
     }
 
     function removePlayer(address _address) public onlyadmin returns (bool) {
@@ -233,7 +253,7 @@ contract uno {
     function pickCardFromDeck() public returns (Card memory) {
         require(deck.length != 0, "no more card on the deck");
         uint last_card = deck.length -1 ;
-        Card memory picked_cafd = deck[last_card];
+        Card memory picked_card = deck[last_card];
 
         deck.pop();
 
