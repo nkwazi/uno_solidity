@@ -9,7 +9,7 @@ enum Value {Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Skip, Sw
 
 struct Card {
     Value value;
-    Type type;
+    Suit suit;
 }
 
 struct Deck {
@@ -32,11 +32,10 @@ struct player {
     string name;
     address paddress;
     // if turn is true , the user is able to put his card on the table.
-    byte32 secret_nonce;
     uint id;
 
 }
-    mapping(address => player) players;
+    // find solution for this --> mapping(address => player) players;
 
 contract uno {
     
@@ -86,17 +85,19 @@ contract uno {
     }
 
     modifier isValidDrop{
-        require(_card.value)
+        require(_card.value);
+        _;
     }
 
-//TODO: Make possible playing again, after finishing a game.
-    function () isValidAddr newRound public payable {
+
+/*TODO: Make possible playing again, after finishing a game.
+    function () isValidAddr public payable {
         //Players must use PayContract function to pay
         revert("Please use PayContract Function to pay.");
-    }
+    } */
 
-    //Pay the contract or in our world place the bet. 
-    function payContract() isValidAddr newRound public payable returns (string) {
+//Pay the contract or in our world place the bet. 
+    function payContract()  isValidAddr public payable  returns (string memory) {
 
     if(_origBalance >0)
         require(_player == msg.sender, "Player ready to play(pay)");
@@ -110,9 +111,9 @@ contract uno {
 
         emit PlayerDeposit(address(this), msg.sender, msg.value);
 
-        _msg = "Contract Paid, Bet placed. Enjoy playing dUno!"
-        return _msg;
+        _msg = "Contract Paid, Bet placed. Enjoy playing dUno!";
     }
+
 
     function randomNr() internal returns (uint randomNumber){
         uint seed;
@@ -146,7 +147,7 @@ contract uno {
 
     }
 
-    function shuffleDeck() {
+    function  shuffleDeck() public {
         uint256[108] memory unshuffled;
         Deck deck;
 
@@ -156,7 +157,7 @@ contract uno {
 
         uint cardIndex;
 
-        for (i=0, i < 108; i++){
+        for (i=0; i < 108; i++){
             cardIndex = uint256(randomNumber[i]) % (108-i);
             deck[i] = unshuffled[cardIndex];
             unshuffled[cardsIndex] = unshuffle[108-i-1];
@@ -165,23 +166,23 @@ contract uno {
 
     }
 
-    function generateCards() 
+//    function generateCards() 
 
-    function generatePlayers() {
+    function generatePlayers() public {
 
         _players = 0;
         _playersCount = 0;
 
+        deal();
 
-
-    }
+}
 
     function onlyAdmin(){
         require(msg.sender == admin);
          _;
     }
 
-    function addPlayer(string _name, uint256 _id) public returns
+   function addPlayer(string memory _name, uint256 _id) public returns
     (bool){
         players[msg.sender].name = _name;
         players[msg.sender].paddress = msg.sender;
@@ -189,14 +190,14 @@ contract uno {
         return true;
     }
 
-    function editPlayer(string _name, address _address,byte _secretNonce, uint256 _id) public returns (bool) {
+    function editPlayer(string memory _name, address _address,byte _secretNonce, uint256 _id) public returns (bool) {
         players[msg.sender].name = _name;
-        players[msg.sender].paddress = _address:
+        players[msg.sender].paddress = _address;
         players[msg.sender].secret_nonce = _secretNonce;
         players[msg.sender].id = _id;
     }
 
-    function removePlayer(address _address) public onlyadmin returns (bool) {
+    function removePlayer(address  _address) public onlyadmin returns (bool ) {
         delete players[_address];
         return true;
     }
@@ -208,7 +209,7 @@ contract uno {
     }
 
 
-    function placeBet(uint256 bet) isValidAddr isPlayer newRound public returns (string) {
+    function placeBet(uint256 bet) isValidAddr isPlayer  public returns (string memory) {
         uint256 betEth;
         betEth = bet;
 
@@ -221,12 +222,12 @@ contract uno {
         _roundInProgress = true;
     }
 
-    function takeBetMoney() isValidAddr isPlayer newRound public returns(string){
+    function takeBetMoney() isValidAddr isPlayer  public returns(string memory){
 
         uint256 tempBalance = 0;
 
         if(_gameBalance < _origBalance)
-            _Msg = "You lost your Ether!"
+            _Msg = "You lost your Ether!";
 
         emit PlayerWithdrawal(this, msg.sender, tempBalance);
 
@@ -237,16 +238,18 @@ contract uno {
 
     //TODO: Filling the array with the different cards?
     // How is this going to be implemented? 
-    function deal() internal returns(string){
+    function deal() internal returns(string memory){
 
-        _cards = 0
+        _cards = 0;
+        shuffleDeck();
+
     }
 
     function cardTable() public view 
-        returns(string Message, uint[] players, uint playersPot, 
+        returns(string memory Message, uint[] players, uint playersPot, 
         uint[] playersCards, uint[] tableCards){
 
-         return (_msg,_players, _playersPot, _cards, _cardsTable)
+         return (string memory _msg, _players, _playersPot, _cards, _cardsTable);
        
        }
 
@@ -260,7 +263,5 @@ contract uno {
         return picked_card;
 
     }
-
-
 
 }
