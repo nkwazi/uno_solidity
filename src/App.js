@@ -1,19 +1,11 @@
 import React from 'react';
-import logo from './dUNO2.png';
 import './App.css';
+import Container from './components/Container';
 
-var sectionStyle = {
-  width: "100%",
-  height: "100%",
-  backgroundImage: { logo }
-};
-
-function App() {
-  return (
-    <div className="App">
-      <p>DUNO</p>
-      <input className="Login-input" placeholder="Name" />
-      <button>Get started</button>
+function App()  {
+  return(
+    <div>
+      <Container />
     </div>
   );
 }
