@@ -1,267 +1,236 @@
-/* Bachelor Thesis
-Distributed card game on the blockchain
-Luka Vucenovic & Janek de Kock
-*/
-pragma solidity >=0.4.16 <0.7.0;
+pragma solidity ^0.5.17;
 
-enum Suit {Red, Blue, Yellow, Green, Black}
-enum Value {Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Skip, Switch, PlusTwo, ChooseColor, PlusFourColor}
+contract Ownable {
+    address private _owner;
 
-struct Card {
-    Value value;
-    Suit suit;
-}
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
-struct Deck {
-    Card[108] deck_state;
-    Card[108] card_used;
-    Card[108] card_player;
-    Card[108] card_left;
-    bool full_deck;
-    bool empty_deck;
-}
+    /**
+     * @dev The Ownable constructor sets the original `owner` of the contract to the sender
+     * account.
+     */
+    constructor () internal {
+        _owner = msg.sender;
+        emit OwnershipTransferred(address(0), _owner);
+    }
 
-struct Rules {
-    uint16 min_player;
-    uint16 max_player;
-    bool ready;
+    /**
+     * @return the address of the owner.
+     */
+    function owner() public view returns (address) {
+        return _owner;
+    }
 
-}
-
-struct player {
-    string name;
-    address paddress;
-    // if turn is true , the user is able to put his card on the table.
-    uint id;
-
-}
-    // find solution for this --> mapping(address => player) players;
-
-contract uno {
-    
-    address private _player;
-
-    bool private _roundInProgress;
-    bool private _displayUpdate;
-
-    uint256 private _ethLimit = 10000000 wei;
-    uint256 private _dUnoBalance;
-    uint256 private _origBalance;
-    uint256 private _gameBalance;
-    uint256 private _newCardTable;
-    uint256 private _rngCounter;
-    uint256 private _randNum;
-    uint[]  private _cardsTable;
-    uint[24] private _cards;
-    uint[12] private _players;
-    uint256 private _playerBet;
-    uint256 pricate _playersPot;
-    uint8 private _playersCount;
-    uint8 private _cardsCount;
-
-    string private _msg;
-
-    //events for betting eth and then withdrawing it after winning
-    event PlayerDeposit(address Contract, address Player, uint256 Amount);
-    event PlayerWithdrawal(address Contract, address Player, uint256 Amount);
-
-
-    // Make sure the address is Valid.
-    modifier isValidAddr() {
-        require(msg.sender != 0x0, "Invalid Address.");
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(isOwner());
         _;
     }
 
-    //Make sure address is connected Player
-    modifier isPlayer() {
-        require(msg.sender == _player, "Only Player can use this function.");
-        _;
-    }
-    
-    //Make sure function can only be used while round in progress
-    modifier playerTurn() {
-        require(_roundInProgress == true, "This Function can only be used while round is in progress.");
-        _;
+    /**
+     * @return true if `msg.sender` is the owner of the contract.
+     */
+    function isOwner() public view returns (bool) {
+        return msg.sender == _owner || tx.origin == _owner;
     }
 
-    modifier isValidDrop{
-        require(_card.value);
-        _;
+    /**
+     * @dev Allows the current owner to relinquish control of the contract.
+     * @notice Renouncing to ownership will leave the contract without an owner.
+     * It will not be possible to call the functions with the `onlyOwner`
+     * modifier anymore.
+     */
+    function renounceOwnership() public onlyOwner {
+        emit OwnershipTransferred(_owner, address(0));
+        _owner = address(0);
     }
 
-
-/*TODO: Make possible playing again, after finishing a game.
-    function () isValidAddr public payable {
-        //Players must use PayContract function to pay
-        revert("Please use PayContract Function to pay.");
-    } */
-
-//Pay the contract or in our world place the bet. 
-    function payContract()  isValidAddr public payable  returns (string memory) {
-
-    if(_origBalance >0)
-        require(_player == msg.sender, "Player ready to play(pay)");
-        require((_origBalance + msg.value) <= _ethLimit, "Too much Ether!");
-
-        _origBalance += msg.value;
-        _gameBalance = _origBalance;
-
-        //Setting players address
-        _player = msg.sender;
-
-        emit PlayerDeposit(address(this), msg.sender, msg.value);
-
-        _msg = "Contract Paid, Bet placed. Enjoy playing dUno!";
+    /**
+     * @dev Allows the current owner to transfer control of the contract to a newOwner.
+     * @param newOwner The address to transfer ownership to.
+     */
+    function transferOwnership(address newOwner) public onlyOwner {
+        _transferOwnership(newOwner);
     }
 
-
-    function randomNr() internal returns (uint randomNumber){
-        uint seed;
-        _rngCounter *= 2;
-        seed = now - _rngCounter;
-        // here the random number is generated, using the previous block hash. 
-        _randNum = (uint(keccak256(abi.encodePacked(blockhash(block.number -1), seed)))%14 +1);
-
-        // Here we need to define the special card(switch, color). They will be numbers higher than 9. How can this be intilialized right? Should this be done in generateCards(); ??
-        if(_randNum = 10)
-            _randNum = Value.Skip;
-
-        if(_randNum = 11)
-            _randNum = Value.Switch;
-
-        if(_randNum = 12)
-            _randNum = Value.PlusTwo;
-
-         if(_randNum = 13)
-            _randNum = Value.ChooseColor;
-
-         if(_randNum = 14)
-            _randNum = Value.PlusFourColor;
-
-
-        // reset the RNG Counter, to prevent unecessary large number and overflow
-        if(_rngCounter > 420000000)
-            _rngCounter = _randNum;
-
-            return _randNum;
-
+    /**
+     * @dev Transfers control of the contract to a newOwner.
+     * @param newOwner The address to transfer ownership to.
+     */
+    function _transferOwnership(address newOwner) internal {
+        require(newOwner != address(0));
+        emit OwnershipTransferred(_owner, newOwner);
+        _owner = newOwner;
     }
+}
 
-    function  shuffleDeck() public {
-        uint256[108] memory unshuffled;
-        Deck deck;
 
-        for(uint256 i = 0; i < 108; i++){
-            unshuffled[i] = i;
+/**
+ * @title SafeMath
+ * @dev Math operations with safety checks that throw on error
+ */
+library SafeMath {
+
+  /**
+  * @dev Multiplies two numbers, throws on overflow.
+  */
+    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
+        if (a == 0) {
+            return 0;
         }
-
-        uint cardIndex;
-
-        for (i=0; i < 108; i++){
-            cardIndex = uint256(randomNumber[i]) % (108-i);
-            deck[i] = unshuffled[cardIndex];
-            unshuffled[cardsIndex] = unshuffle[108-i-1];
-
-        }
-
+        uint256 c = a * b;
+        assert(c / a == b);
+        return c;
     }
 
-//    function generateCards() 
+    /**
+    * @dev Integer division of two numbers, truncating the quotient.
+    */
+    function div(uint256 a, uint256 b) internal pure returns (uint256) {
+        // assert(b > 0); // Solidity automatically throws when dividing by 0
+        uint256 c = a / b;
+        // assert(a == b * c + a % b); // There is no case in which this doesn't hold
+        return c;
+    }
 
-    function generatePlayers() public {
+    /**
+    * @dev Substracts two numbers, throws on overflow (i.e. if subtrahend is greater than minuend).
+    */
+    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
+        assert(b <= a);
+        return a - b;
+    }
 
-        _players = 0;
-        _playersCount = 0;
-
-        deal();
-
+    /**
+    * @dev Adds two numbers, throws on overflow.
+    */
+    function add(uint256 a, uint256 b) internal pure returns (uint256) {
+        uint256 c = a + b;
+        assert(c >= a);
+        return c;
+    }
 }
 
-    function onlyAdmin(){
-        require(msg.sender == admin);
-         _;
+contract Uno is Ownable {
+    using SafeMath for uint256;
+    
+    address[] public players;
+    uint256 public nextMover = 0;
+    bool public gameStarted = false;
+    uint256 public lastTimeMoved;
+    
+    // Events
+    event GameStarted();
+    event PlayerJoined(address player);
+    event PlayerMoved(address player, string hash);
+    event WinnerChosen(address player);
+
+    //A new player joins the game
+    function joinGame() public payable {
+        require(!gameStarted, "Game already started");
+        require(isPlaying(msg.sender) == false, "Already joined");
+        require(msg.value == 0.1 ether, "You must send 0.1 eth");
+        
+        players.push(msg.sender);
+        
+        emit PlayerJoined(msg.sender);
+    }
+    
+    //The platform initiates a new game. No more players can join
+    function startGame() external onlyOwner {
+        require(!gameStarted, "Game already started");
+        require(players.length > 1, "At least 2 players are required");
+        
+        gameStarted = true;
+        lastTimeMoved = now;
+    }
+    
+    //Each player moves on their turn and send the hash representing the movement
+    function move(string calldata _hash) external {
+        require(isPlaying(msg.sender), "Invalid player");
+        require(players[nextMover] == msg.sender, "Wrong mover");
+        lastTimeMoved = now;
+
+        setNextPlayer();
+        
+        emit PlayerMoved(msg.sender, _hash);
+    }
+    
+    //The platform defines a player as the winner, transfes him the ETH and reinitializes the game
+    function chooseWinner(address payable _player) public onlyOwner payable {
+        require(isPlaying(_player), "The player is not part of the game");
+        require(gameStarted, "Game not started");
+        
+        delete players;
+        gameStarted = false;
+        nextMover = 0;
+        _player.transfer(address(this).balance);
+        
+        emit WinnerChosen(_player);
+    }
+    
+    function expulsePlayer(address player) public onlyOwner {
+        _removePlayerByValue(player);
+        
+        nextMover = nextMover % players.length;
+        lastTimeMoved = now;
+    }
+    
+    
+    function expulsePlayerForTimeout(address _player) public {
+        require(isPlaying(_player), "Invalid player");
+        require(players[nextMover] == _player, "Not current mover");
+        require(isTimeout(), "Not enough time passed for timeout");
+        
+        _removePlayerByValue(_player);
+        
+        nextMover = nextMover % players.length;
+        lastTimeMoved = now;
+    }
+    
+    function setNextPlayer() internal {
+        nextMover = (nextMover.add(1)) % players.length;
     }
 
-   function addPlayer(string memory _name, uint256 _id) public returns
-    (bool){
-        players[msg.sender].name = _name;
-        players[msg.sender].paddress = msg.sender;
-        players[msg.sender].id = _id;
-        return true;
+    function isPlaying(address _player) public view returns(bool) {
+        for (uint256 i = 0; i < players.length; i++) {
+            if (players[i] == _player) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    function isTimeout() public view returns (bool) {
+        return now - lastTimeMoved > 3 minutes;
     }
 
-    function editPlayer(string memory _name, address _address,byte _secretNonce, uint256 _id) public returns (bool) {
-        players[msg.sender].name = _name;
-        players[msg.sender].paddress = _address;
-        players[msg.sender].secret_nonce = _secretNonce;
-        players[msg.sender].id = _id;
+    function _findPlayer(address _value) internal view returns(uint) {
+        uint i = 0;
+        while (players[i] != _value) {
+            i++;
+        }
+        return i;
     }
 
-    function removePlayer(address  _address) public onlyadmin returns (bool ) {
-        delete players[_address];
-        return true;
+    function _removePlayerByValue(address _value) internal {
+        uint i = _findPlayer(_value);
+        _removePlayerByIndex(i);
     }
 
-    function hashCard(Card memory _your_card, bytes32 secret_nonce) internal pure returns
-    (bytes32) {
-        (Suit _suit, Value _value) = (your_card.suit, your_card.value);
-        return keccak256(abi.encode(_suit, _value, secret_nonce));
+    function _removePlayerByIndex(uint _i) internal {
+        while (_i<players.length-1) {
+            players[_i] = players[_i+1];
+            _i++;
+        }
+        players.length--;
     }
-
-
-    function placeBet(uint256 bet) isValidAddr isPlayer  public returns (string memory) {
-        uint256 betEth;
-        betEth = bet;
-
-        require(betEth >= 1 wei && betEth <= 1000 wei, "Limit of Bets; 1-1000 wei");
-        require(betEth <= _gameBalance, "Sorry, not enough eth!");
-
-        //Update players deposit
-        _gameBalance -= betEth;
-
-        _roundInProgress = true;
-    }
-
-    function takeBetMoney() isValidAddr isPlayer  public returns(string memory){
-
-        uint256 tempBalance = 0;
-
-        if(_gameBalance < _origBalance)
-            _Msg = "You lost your Ether!";
-
-        emit PlayerWithdrawal(this, msg.sender, tempBalance);
-
-        address(msg.sender).trasfer(_dUnoBalance);
-
-        return _Msg;
-    }
-
-    //TODO: Filling the array with the different cards?
-    // How is this going to be implemented? 
-    function deal() internal returns(string memory){
-
-        _cards = 0;
-        shuffleDeck();
-
-    }
-
-    function cardTable() public view 
-        returns(string memory Message, uint[] players, uint playersPot, 
-        uint[] playersCards, uint[] tableCards){
-
-         return (string memory _msg, _players, _playersPot, _cards, _cardsTable);
-       
-       }
-
-    function pickCardFromDeck() public returns (Card memory) {
-        require(deck.length != 0, "no more card on the deck");
-        uint last_card = deck.length -1 ;
-        Card memory picked_card = deck[last_card];
-
-        deck.pop();
-
-        return picked_card;
-
-    }
-
+    
+    //This avoids player sending ETH to the contract by mistake
+    function() external payable {
+        revert();
+    } 
 }
