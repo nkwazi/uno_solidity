@@ -1,5 +1,9 @@
 .App {
   text-align: center;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  flex: 1;
 }
 
 .App-logo {
@@ -14,14 +18,19 @@
 }
 
 .App-header {
-  background-color: #282c34;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  color: white;
+  background-image: url(./dUNO.png);
+  background-color: black;
+}
+
+.App-header::after {
+  opacity: 100%;
+
 }
 
 .App-link {
@@ -42,6 +51,28 @@
 }
 
 .dUNO {
-  opacity: 10%;
+  color: white;
+  text-align: center;
+}
+
+.Card {
+  height: 100%;
   width: 100%;
+}
+
+.Game {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-image: url(./components/images/poker_table.png);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 70%;
+}
+
+.image {
+  height: 100;
+  width: 60;
 }

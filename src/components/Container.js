@@ -21,7 +21,7 @@ export default class Container extends Component {
     console.log(this.state.name)
     if (!this.state.isGame) {
       return (
-        <div className="App">
+        <div className="dUNO">
           <Register
             liftStateUp={this.liftStateUp}
           />

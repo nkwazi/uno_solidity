@@ -5,15 +5,22 @@ export default class Game extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      name: ''
+      name: 'red_5'
     }
   }
 
   render() {
-    console.log(this.props.name)
+    const logo = './images/' + this.state.name + '.png';
     return(
-      <div>
-        <p> {this.props.name} </p>
+      <div className='Game'>
+        <div className='player'>
+          <p>Player 1</p>
+          <img src={require('./images/red_skip.png')} className='image' alt='foob' />
+        </div>
+        <div className='player'>
+          <p>Player 2</p>
+          <img src={require('./images/blue_+2.png')} className='image' alt='foob'/>
+        </div>
       </div>
     )
   }

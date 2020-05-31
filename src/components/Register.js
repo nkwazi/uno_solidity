@@ -27,7 +27,7 @@ export default class Register extends Component {
 
   render() {
     return(
-      <div>
+      <div className='App-header'>
         <p>DUNO</p>
         <input
           className="Login-input"
