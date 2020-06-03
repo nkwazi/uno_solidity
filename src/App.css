@@ -30,7 +30,6 @@
 
 .App-header::after {
   opacity: 100%;
-
 }
 
 .App-link {
@@ -75,4 +74,16 @@
 .image {
   height: 100;
   width: 60;
+}
+
+.aiPlayer {
+  flex: 1;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+}
+
+.aiText {
+  position: absolute;
+  font-size: 20;
 }

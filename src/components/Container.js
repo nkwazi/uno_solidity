@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Register from './Register';
-import Game from './Game';
+import Uno from './Uno';
 
 export default class Container extends Component {
 
@@ -31,7 +31,7 @@ export default class Container extends Component {
     else if (this.state.isGame) {
       return (
         <div>
-          <Game {...this.state.name} />
+          <Uno name={this.state.name} />
         </div>
       )
     }
