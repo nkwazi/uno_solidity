@@ -9,9 +9,10 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.1",
-    "uno-engine": "^1.1.0",
+    "truffle": "^5.0.5",
     "truffle-hdwallet-provider": "1.0.4",
     "truffle-hdwallet-provider-privkey": "1.0.3",
+    "uno-engine": "^1.1.0",
     "web3": "^1.2.8"
   },
   "scripts": {
@@ -35,4 +36,4 @@
       "last 1 safari version"
     ]
   }
-}  
+}
