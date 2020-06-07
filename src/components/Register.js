@@ -17,7 +17,7 @@ export default class Register extends Component {
         if (err) {
           throw err;
         }
-        if (accounts.length == 0) {
+        if (accounts.length === 0) {
           console.log('Locked');
         } else {
           console.log('Connected');
@@ -29,8 +29,6 @@ export default class Register extends Component {
   };
 
   _isMounted = false;
-
-
 
   componentDidMount() {
     this._isMounted = true;
@@ -62,6 +60,4 @@ export default class Register extends Component {
       </div>
     )
   }
-
-
 }

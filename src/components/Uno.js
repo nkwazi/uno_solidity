@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
-import { Game, Color, Value } from 'uno-engine';
+import { Game } from 'uno-engine';
 import UnoSOL from '../abis/contracts/Uno.json';
 import Web3 from 'web3';
 
 export default class Uno extends Component {
 
   _player2 = 'Player 2';
+  _canGoAgain = true;
 
   constructor(props) {
     super(props);
@@ -22,7 +23,7 @@ export default class Uno extends Component {
     };
   }
 
-  async componentDidMount() {
+  componentDidMount() {
     this.loadWeb3()
     this.loadBlockchain()
     this.initGame()
@@ -35,9 +36,7 @@ export default class Uno extends Component {
     this.pushPlayer(this._player2)
     const newGame = new Game(this.state.players)
     console.log(newGame.deck)
-    const p = newGame.getPlayer(this.props.name)
     this.setState({ game: newGame })
-    this.prepareHand(p)
   }
 
   loadWeb3() {
@@ -48,7 +47,7 @@ export default class Uno extends Component {
         if (err) {
           throw err;
         }
-        if (accounts.length == 0) {
+        if (accounts.length === 0) {
           console.log('Locked');
         } else {
           this.isGameReady()
@@ -67,13 +66,13 @@ export default class Uno extends Component {
     window.ethereum.enable();
     const web3 = new Web3(window.ethereum);
     this.setState({ web3 })
-    const accounts = web3.eth.getAccounts((err, accounts) => {
+    web3.eth.getAccounts((err, accounts) => {
       if(err) {
         throw err;
       }
       else {
         console.log('Accounts: ', accounts)
-        let networkId = web3.eth.net.getId((err, id) => {
+        web3.eth.net.getId((err, id) => {
           console.log('ID', id)
           const networkData = UnoSOL.networks[5777]
           console.log('Network', networkData)
@@ -83,50 +82,16 @@ export default class Uno extends Component {
         })
       }
     })
-
-    // const networkId = web3.eth.net.getId((err, id) => {
-    //   if(err) {
-    //     throw err;
-    //   }
-    //   else {
-    //     console.log('ID: ', id)
-    //     return id
-    //   }
-    // })
-
-    // this.setState({ account: accounts[0] })
-    // // Network ID
-    // const networkId = await web3.eth.net.getId()
-    // const networkData = UnoSOL.networks[networkId]
-    // if(networkData) {
-    //   const unoSOL = web3.eth.Contract(UnoSOL.abi, networkData.address)
-    //   this.setState({ unoSOL })
-    //   const postCount = await unoSOL.methods.postCount().call()
-    //   this.setState({ postCount })
-    //   // Load Posts
-    //   for (var i = 1; i <= postCount; i++) {
-    //     const post = await unoSOL.methods.posts(i).call()
-    //     this.setState({
-    //       posts: [...this.state.posts, post]
-    //     })
-    //   }
-    //   // Sort posts. Show highest tipped posts first
-    //   this.setState({
-    //     posts: this.state.posts.sort((a,b) => b.tipAmount - a.tipAmount )
-    //   })
-    //   this.setState({ loading: false})
-    // } else {
-    //   window.alert('UnoSOL contract not deployed to detected network.')
-    // }
   }
 
+  // TODO once game is over should be called
   chooseWinner(address) {
-    let val = this.state.unoSOL.methods.chooseWinner(address).send({ 'from': '0x1DC6A6882c9C1B380EBc206180C735a34aeED553', 'gas': '1000000', 'value': this.state.web3.utils.toWei('0.5', 'ether') })
+    let val = this.state.unoSOL.methods.chooseWinner(address).send({ 'from': this.state.account, 'gas': '1000000', 'value': this.state.web3.utils.toWei('0.5', 'ether') })
     console.log('Winner', val)
   }
 
   joinGame() {
-    let val = this.state.unoSOL.methods.joinGame().call((err, ok) => {
+    this.state.unoSOL.methods.joinGame().call((err, ok) => {
       console.log('Joined Game', ok)
     })
   }
@@ -147,26 +112,64 @@ export default class Uno extends Component {
   displayCard(cardToDisplay) {
     console.log('Card to display:' + cardToDisplay)
     const currentCard = '/images/' + this.cardToImageConverter(cardToDisplay) +'.png';
-    return( <img src={currentCard} />)
+    return( <img src={currentCard} alt='currentCard'/>)
   }
 
-  prepareHand(p) {
-    const hand = []
-    p.hand.map(card => {
-      hand.push(card)
-    })
-    this.setState({ mainHand: hand })
+  getNumber(input) {
+    let uniform = input.toLowerCase()
+    switch(uniform) {
+      case 'red':
+        return 1
+      case 'blue':
+        return 2
+      case 'green':
+        return 3
+      case 'yellow':
+        return 4
+      default:
+        console.log('Not a valid input')
+    }
   }
 
+  // TODO +2 should change player
   throwCard(_card) {
     try {
-      console.log(this.state.game.currentPlayer)
+      if (_card.color === undefined) {
+        let colour = prompt('Please enter a color')
+        _card.color = this.getNumber(colour)
+      }
       this.state.game.play(_card)
-      this.state.mainHand.splice( this.state.mainHand.indexOf(_card), 1 )
     } catch (e) {
-      alert('notPossible' + e)
+      console.log(e)
+    } finally {
+      this.forceUpdate()
     }
-    this.setState({ gameOver: false })
+  }
+
+  checkAllCards(player) {
+    for (let i=0; i<player.hand.length; i++) {
+      if(this.state.game.discardedCard.color === player.hand[i].color || this.state.game.discardedCard.value === player.hand[i].value) {
+        this.throwCard(player.hand[i])
+        break
+      } else {
+        console.log(player.hand[i].name + ' ' + player.hand[i].value)
+      }
+    }
+  }
+
+  aiPlayer() {
+    const player = this.state.game.currentPlayer
+    this._canGoAgain = true
+    console.log('AI starting...', player.name)
+    if(player.name === this._player2) {
+      this.checkAllCards(player)
+    } else if (this._canGoAgain) {
+      this.drawCard()
+      this.checkAllCards(player)
+    } else {
+      this.pass()
+      console.log('Not my turn')
+    }
   }
 
   getCardColor(card) {
@@ -187,10 +190,6 @@ export default class Uno extends Component {
     }
   }
 
-  updateUI() {
-    this.forceUpdate()
-  }
-
   cardToImageConverter(_card) {
     let img = ''
     if (_card.value < 10) {
@@ -200,21 +199,39 @@ export default class Uno extends Component {
       img = this.getCardColor(_card) + '_+2'
     }
     else if (_card.value === 11) {
-      img = this.getCardColor(_card) + '_reverse'
+      img = this.getCardColor(_card) + '_skip'
     }
     else if (_card.value === 12) {
-      img = 'black' + '_wildcard'
+      img = this.getCardColor(_card) + '_reverse'
+    }
+    else if (_card.value === 13) {
+      img = 'black_wildcard'
     }
     else {
-      img = this.getCardColor(_card) + '_+4'
+      img = 'black_+4'
     }
     return img
   }
 
+  skipPlayer2() {
+    let newCard = this.state.game.draw()
+    console.log('Picked Up', newCard)
+    //this.state.mainHand.push(newCard)
+    this.state.game.pass()
+    this.forceUpdate()
+  }
+
   drawCard() {
-    this.state.game.draw()
-    this.setState({ gameOver: true })
-    console.log('Game state:', this.state.gameOver)
+    console.log(this.state.game.drawn)
+    if(!this.state.game.drawn) {
+      this.state.game.draw()
+      this.forceUpdate()
+    }
+  }
+
+  pass()  {
+    this.state.game.pass()
+    this.forceUpdate()
   }
 
   render() {
@@ -222,25 +239,27 @@ export default class Uno extends Component {
       return(
         <div className='Game'>
         <div className='aiPlayer'>
-          <img  src='/images/back.png' alt='foob' />
-          <p className='aiText'> [AI] </p>
+          <div className='images' alt='foo'>
+            { this.state.game.getPlayer(this._player2).hand.map(images => {
+              return( <img key={images} src={ ('/images/' + this.cardToImageConverter(images) +'.png') } onClick={() => this.throwCard(images)} alt='aiCard'/>)
+              })
+            }
+          </div>
         </div>
           <div className='image'>
             <p>Deck</p>
             <p>Current Player: {this.state.game.currentPlayer.name} </p>
-            <img src='/images/back.png' className='image' alt='foob' onClick={() => this.state.game.draw()} />
+            <img src='/images/back.png' className='image' alt='foob' onClick={() => this.drawCard()} />
             { this.displayCard(this.state.game.discardedCard) }
-            <button onClick={() => this.drawCard()}>Draw</button>
-            <button onClick={() => this.joinGame()}>Join</button>
-            <button onClick={() => this.state.game.pass()}>Pass</button>
-            <button onClick={() => this.updateUI()}>Update</button>
+            <button onClick={() => this.pass()}>Pass</button>
+            <button onClick={() => console.log(this.state.game.getPlayer(this.props.name).hand)}>Show real Hand</button>
             <button onClick={() => this.chooseWinner(this.state.account)}>Winner</button>
           </div>
           <div className='player'>
             <p> {this.state.name} [ {this.state.account} ] </p>
             <div className='images' alt='foo'>
-              { this.state.mainHand.map(images => {
-                return( <img key={images} src={ ('/images/' + this.cardToImageConverter(images) +'.png') } onClick={() => this.throwCard(images)} />)
+              { this.state.game.getPlayer(this.props.name).hand.map((images, element) => {
+                return( <img key={element} src={ ('/images/' + this.cardToImageConverter(images) +'.png') } onClick={() => this.throwCard(images)} alt='playersCard'/>)
                 })
               }
             </div>
@@ -263,7 +282,5 @@ export default class Uno extends Component {
         </div>
       )
     }
-
   }
-
 }
