@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Game } from 'uno-engine';
+import { keccak256 } from 'js-sha3';
 import UnoSOL from '../abis/contracts/Uno.json';
 import Web3 from 'web3';
 import Account from './Account';
@@ -45,6 +46,7 @@ export default class Uno extends Component {
     this.setState({ game: newGame })
   }
 
+  // Establish a connection with web3JS
   loadWeb3() {
     if (typeof window.ethereum !== 'undefined') {
       window.ethereum.enable();
@@ -68,6 +70,7 @@ export default class Uno extends Component {
     }
   }
 
+  // Initiates a connection with the smart contract
   loadBlockchain() {
     window.ethereum.enable();
     const web3 = new Web3(window.ethereum);
@@ -90,9 +93,9 @@ export default class Uno extends Component {
     })
   }
 
-  // TODO once game is over should be called
+  // Called after a players cards drops to zero
   chooseWinner(address) {
-    let val = this.state.unoSOL.methods.chooseWinner(address).send({ 'from': this.state.account, 'gas': '1000000', 'value': this.state.web3.utils.toWei('0.5', 'ether') })
+    let val = this.state.unoSOL.methods.chooseWinner(address).send({ 'from': this.state.account, 'gas': '1000000', 'value': this.state.web3.utils.toWei('0.3', 'ether') })
     console.log('Winner', val)
     this.state.web3.eth.getBalance(this.state.account, (err, balance, e) => {
       if (balance) {
@@ -106,39 +109,43 @@ export default class Uno extends Component {
     })
   }
 
-  // TODO find place to use
+  // Is called whenever a player joins the game
   joinGame() {
     this.state.unoSOL.methods.joinGame().call((err, ok) => {
       console.log('Joined Game', ok)
     })
   }
 
-  // TODO find place to use
+  // To be called once the game starts, initiates the game on the smart contract
   startGame() {
     this.state.unoSOL.methods.startGame().call(() => {
       console.log('Game started')
     })
   }
 
-  // update gameState to indicate Metamask connection failed
+  // Update gameState to indicate Metamask connection failed
   couldNotConnect() {
     this.setState({ gameState: 'Could not connect to Metamask' })
   }
 
+  // Once enough players have joined game is set to ready
   isGameReady() {
     this.gameReady = !this.gameReady
   }
 
+  // Adds players to local array for functionality purposes
   pushPlayer(prop) {
     this.state.players.push(prop)
   }
 
+  // Render a card to html format to display
   displayCard(cardToDisplay) {
     console.log('Card to display:' + cardToDisplay)
     const currentCard = '/images/' + this.cardToImageConverter(cardToDisplay) +'.png';
     return(<img src={currentCard} alt='currentCard'/>)
   }
 
+  // Converts the the inputed colour to card colour enum
   getNumber(input) {
     let uniform = input.toLowerCase()
     switch(uniform) {
@@ -155,6 +162,7 @@ export default class Uno extends Component {
     }
   }
 
+  // Allows player to throw down a card if it is a valid action
   throwCard(_card) {
     try {
       if (_card.color === undefined) {
@@ -166,6 +174,10 @@ export default class Uno extends Component {
         console.log(this.state.game.currentPlayer.hand.length)
       }
       this.state.game.play(_card)
+      let hash = keccak256((_card.value) + '' + _card.color );
+      this.state.unoSOL.methods.move(hash).call(() => {
+        console.log(hash)
+      })
     } catch (e) {
       console.log(e)
       this.forceUpdate()
@@ -179,12 +191,15 @@ export default class Uno extends Component {
     }
   }
 
+  // Random number generator used for the bot to choose different Color
+  // To Improve: Instead of using a random number, the highest amount of cards with same colour could be returned
   getRandomInt(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
+  // Impleneted for the the bot to check if cards are availabe to be thrown down
   checkAllCards(player) {
     for (let i=0; i<player.hand.length; i++) {
       if(this.state.game.discardedCard.color === player.hand[i].color || this.state.game.discardedCard.value === player.hand[i].value) {
@@ -200,10 +215,9 @@ export default class Uno extends Component {
         break
       }
     }
-    //this.drawCard()
-    //this.pass()
   }
 
+  // Makes the moves for the bot, could surley be improved further potentially also using Machine Learning and neural networks to learn
   aiPlayer() {
     const player = this.state.game.getPlayer(this._player2)
     console.log('AI starting...', player.name)
@@ -218,6 +232,7 @@ export default class Uno extends Component {
     }
   }
 
+  // function to return card colour from enum
   getCardColor(card) {
     if (card.color === 4) {
       return 'yellow'
@@ -236,6 +251,7 @@ export default class Uno extends Component {
     }
   }
 
+  // Converts card from enum to string that is used to load images
   cardToImageConverter(_card) {
     let img = ''
     if (_card.value < 10) {
@@ -260,13 +276,7 @@ export default class Uno extends Component {
     return img
   }
 
-  skipPlayer2() {
-    let newCard = this.state.game.draw()
-    console.log('Picked Up', newCard)
-    this.state.game.pass()
-    this.forceUpdate()
-  }
-
+  // Pulling a new card
   drawCard() {
     console.log(this.state.game.drawn)
     if(!this.state.game.drawn) {
@@ -275,6 +285,7 @@ export default class Uno extends Component {
     }
   }
 
+  // If no card can be played and the Player has drawn a card
   pass()  {
     try {
       this.state.game.pass()
@@ -285,6 +296,7 @@ export default class Uno extends Component {
     }
   }
 
+  // Rendering react
   render() {
     if (this.gameOver) {
       return(
