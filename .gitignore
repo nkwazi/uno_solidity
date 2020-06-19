@@ -1,3 +1,4 @@
 node_modules/*
 truffle-test/*
+build/*
 npm-debug.log

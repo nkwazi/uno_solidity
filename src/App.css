@@ -24,8 +24,7 @@
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  background-image: url(./dUNO.png);
-  background-color: black;
+  background-color: grey;
 }
 
 .App-header::after {
@@ -86,4 +85,16 @@
 .aiText {
   position: absolute;
   font-size: 20;
+}
+
+.Account {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.PlayerInfo {
+  display: flex;
+  flex-direction: row;
+  padding: 5
 }

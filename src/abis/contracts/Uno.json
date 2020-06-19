@@ -15683,12 +15683,12 @@
         }
       },
       "links": {},
-      "address": "0xcC6c4D9c08c520f2F1c9Be298E743ba59B88c8Ab",
-      "transactionHash": "0xe2ce853af24fbdcf9b7fbf2fa0945782e267c23cd90998676504b054c50d778a"
+      "address": "0xF6b97c52d3DaEF90e6d6A07d3Ef5a87aD7BdbB6b",
+      "transactionHash": "0x8591a3ca52f71b3c800f11ac74706225aa8e67006eadab7c82e967972d204f1e"
     }
   },
   "schemaVersion": "3.0.2",
-  "updatedAt": "2020-06-17T15:53:54.927Z",
+  "updatedAt": "2020-06-06T12:05:03.980Z",
   "devdoc": {
     "methods": {
       "isOwner()": {
